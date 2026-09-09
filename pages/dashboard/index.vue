@@ -7,9 +7,9 @@
           <DownloadIcon class="w-4 h-4" />
           Export
         </button>
-        <NuxtLink to="/admin/products/create" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        <NuxtLink to="/products" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
           <PlusIcon class="w-4 h-4" />
-          New Product
+          Manage Products
         </NuxtLink>
       </div>
     </div>
@@ -79,7 +79,7 @@
             <ClockIcon class="w-5 h-5 text-slate-500" />
             Recent Orders
           </h2>
-          <NuxtLink to="/admin/orders" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">View All</NuxtLink>
+          <NuxtLink to="/orders" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">View All</NuxtLink>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
