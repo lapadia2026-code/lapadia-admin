@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-  return 'http://localhost:3005/api/v1';
+  return process.env.NODE_ENV === 'production' 
+    ? 'https://lapadia-backend.onrender.com/api/v1' 
+    : 'http://localhost:3005/api/v1';
 };
 
 export const GATEWAY_ENDPOINT = axios.create({
