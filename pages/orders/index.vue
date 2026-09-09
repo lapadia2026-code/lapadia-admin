@@ -209,6 +209,14 @@
         </div>
       </div>
     </div>
+    
+    <CoreConfirmModal
+      :isOpen="showConfirm"
+      :title="confirmTitle"
+      :message="confirmMessage"
+      @confirm="executeConfirm"
+      @cancel="showConfirm = false"
+    />
   </div>
 </template>
 
@@ -228,6 +236,23 @@ const orderStatusFilter = ref('');
 const showFilterMenu = ref(false);
 const downloading = ref(false);
 
+const showConfirm = ref(false);
+const confirmTitle = ref('');
+const confirmMessage = ref('');
+const confirmAction = ref<(() => void) | null>(null);
+
+const requestConfirm = (title: string, message: string, action: () => void) => {
+  confirmTitle.value = title;
+  confirmMessage.value = message;
+  confirmAction.value = action;
+  showConfirm.value = true;
+};
+
+const executeConfirm = () => {
+  if (confirmAction.value) confirmAction.value();
+  showConfirm.value = false;
+};
+
 const showOrderModal = ref(false);
 const selectedOrder = ref<any>(null);
 
@@ -241,15 +266,20 @@ const closeModal = () => {
   selectedOrder.value = null;
 };
 
-const markFulfilled = async (order: any) => {
-  if (!confirm(`Mark order ${order._id} as fulfilled?`)) return;
-  try {
-    await GATEWAY_ENDPOINT_WITH_AUTH.patch(`/orders/${order._id}/status`, { orderStatus: 'delivered' });
-    showToast({ title: 'Success', message: 'Order marked as fulfilled', type: 'success' });
-    await getOrders();
-  } catch (error) {
-    showToast({ title: 'Error', message: 'Failed to update order status', type: 'error' });
-  }
+const markFulfilled = (order: any) => {
+  requestConfirm(
+    'Confirm Fulfillment',
+    `Are you sure you want to mark order ${order._id} as fulfilled?`,
+    async () => {
+      try {
+        await GATEWAY_ENDPOINT_WITH_AUTH.patch(`/orders/${order._id}/status`, { orderStatus: 'delivered' });
+        showToast({ title: 'Success', message: 'Order marked as fulfilled', type: 'success' });
+        await getOrders();
+      } catch (error) {
+        showToast({ title: 'Error', message: 'Failed to update order status', type: 'error' });
+      }
+    }
+  );
 };
 
 const downloadExcel = async () => {
@@ -268,7 +298,7 @@ const downloadExcel = async () => {
     window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Failed to download excel', error);
-    alert('Failed to download export file.');
+    showToast({ title: 'Error', message: 'Failed to download export file.', type: 'error' });
   } finally {
     downloading.value = false;
   }

@@ -123,6 +123,14 @@
         </form>
       </div>
     </div>
+    
+    <CoreConfirmModal
+      :isOpen="showConfirm"
+      :title="confirmTitle"
+      :message="confirmMessage"
+      @confirm="executeConfirm"
+      @cancel="showConfirm = false"
+    />
   </div>
 </template>
 
@@ -130,6 +138,9 @@
 import { ref, onMounted } from 'vue';
 import { PlusIcon, EditIcon, TrashIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
+import { useCustomToast } from '~/composables/core/useCustomToast';
+
+const { showToast } = useCustomToast();
 
 const loading = ref(true);
 const saving = ref(false);
@@ -138,6 +149,23 @@ const plans = ref<any[]>([]);
 const isModalOpen = ref(false);
 const isEditing = ref(false);
 const currentPlanId = ref('');
+
+const showConfirm = ref(false);
+const confirmTitle = ref('');
+const confirmMessage = ref('');
+const confirmAction = ref<(() => void) | null>(null);
+
+const requestConfirm = (title: string, message: string, action: () => void) => {
+  confirmTitle.value = title;
+  confirmMessage.value = message;
+  confirmAction.value = action;
+  showConfirm.value = true;
+};
+
+const executeConfirm = () => {
+  if (confirmAction.value) confirmAction.value();
+  showConfirm.value = false;
+};
 
 const form = ref({
   name: '',
@@ -205,22 +233,28 @@ const savePlan = async () => {
     
     closeModal();
     await fetchPlans();
+    showToast({ title: 'Success', message: 'Plan saved successfully', type: 'success' });
   } catch (error) {
     console.error('Failed to save plan', error);
-    alert('Failed to save plan');
+    showToast({ title: 'Error', message: 'Failed to save plan', type: 'error' });
   } finally {
     saving.value = false;
   }
 };
 
-const handleDelete = async (id: string) => {
-  if (confirm('Are you sure you want to delete this plan?')) {
-    try {
-      await GATEWAY_ENDPOINT_WITH_AUTH.delete(`/subscriptions/plans/${id}`);
-      await fetchPlans();
-    } catch (e) {
-      alert('Failed to delete plan.');
+const handleDelete = (id: string) => {
+  requestConfirm(
+    'Delete Plan',
+    'Are you sure you want to delete this plan?',
+    async () => {
+      try {
+        await GATEWAY_ENDPOINT_WITH_AUTH.delete(`/subscriptions/plans/${id}`);
+        showToast({ title: 'Success', message: 'Plan deleted successfully', type: 'success' });
+        await fetchPlans();
+      } catch (e) {
+        showToast({ title: 'Error', message: 'Failed to delete plan.', type: 'error' });
+      }
     }
-  }
+  );
 };
 </script>

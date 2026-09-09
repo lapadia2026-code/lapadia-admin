@@ -11,7 +11,7 @@
       ]"
     >
       <div class="h-16 flex items-center justify-between px-6 font-bold text-xl tracking-wider border-b border-slate-800 text-white">
-        <span>Lapadia</span>
+        <img src="@/assets/img/logo.jpg" class="h-10 w-auto rounded-full" />
         <button @click="isMobileMenuOpen = false" class="md:hidden text-slate-400 hover:text-white">
           <XIcon class="w-6 h-6" />
         </button>
