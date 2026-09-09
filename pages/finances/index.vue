@@ -5,9 +5,9 @@
         <h1 class="text-2xl font-bold tracking-tight text-slate-900">Finances</h1>
         <p class="text-sm text-slate-500 mt-1">Manage your revenue, payouts, and financial reports.</p>
       </div>
-      <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium">
+      <button @click="downloadExcel" :disabled="downloading" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium">
         <DownloadIcon class="w-4 h-4" />
-        Download Report
+        {{ downloading ? 'Downloading...' : 'Download Report' }}
       </button>
     </div>
 
@@ -38,7 +38,7 @@
           <span v-if="loading" class="animate-pulse bg-slate-200 rounded h-8 w-32 inline-block"></span>
           <span v-else>₦{{ stats.availableBalance.toLocaleString() }}</span>
         </div>
-        <button class="mt-4 w-full bg-slate-900 text-white font-medium py-2 rounded-lg hover:bg-slate-800 transition-colors">
+        <button @click="showPayoutModal = true" class="mt-4 w-full bg-slate-900 text-white font-medium py-2 rounded-lg hover:bg-slate-800 transition-colors">
           Request Payout
         </button>
       </div>
@@ -103,6 +103,44 @@
         </table>
       </div>
     </div>
+
+    <!-- Payout Modal -->
+    <div v-if="showPayoutModal" class="fixed inset-0 z-[100] flex items-center justify-center">
+      <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showPayoutModal = false"></div>
+      <div class="relative bg-white rounded-2xl w-full max-w-sm mx-4 p-6 shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
+        <div class="mb-5">
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Request Payout</h3>
+          <p class="text-slate-500 text-sm leading-relaxed">Enter the amount you wish to withdraw from your available balance.</p>
+        </div>
+        
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Amount (₦)</label>
+          <input 
+            type="number" 
+            v-model="payoutAmount" 
+            class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-colors"
+            placeholder="e.g. 10000"
+            :max="stats.availableBalance"
+          />
+        </div>
+        
+        <div class="flex items-center justify-end gap-3">
+          <button 
+            @click="showPayoutModal = false" 
+            class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="requestPayout" 
+            :disabled="requestingPayout || !payoutAmount || payoutAmount <= 0 || payoutAmount > stats.availableBalance"
+            class="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {{ requestingPayout ? 'Requesting...' : 'Submit Request' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -110,6 +148,9 @@
 import { ref, onMounted } from 'vue';
 import { DownloadIcon, ArrowUpRightIcon, WalletIcon, CreditCardIcon, BanknoteIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
+import { useCustomToast } from '~/composables/core/useCustomToast';
+
+const { showToast } = useCustomToast();
 
 const loading = ref(true);
 const stats = ref({
@@ -118,6 +159,50 @@ const stats = ref({
   totalExpenses: 0
 });
 const transactions = ref<any[]>([]);
+
+const downloading = ref(false);
+const showPayoutModal = ref(false);
+const payoutAmount = ref<number | null>(null);
+const requestingPayout = ref(false);
+
+const downloadExcel = async () => {
+  downloading.value = true;
+  try {
+    const response = await GATEWAY_ENDPOINT_WITH_AUTH.get('/export/finances', {
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'finances.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to download excel', error);
+    showToast({ title: 'Error', message: 'Failed to download export file.', type: 'error' });
+  } finally {
+    downloading.value = false;
+  }
+};
+
+const requestPayout = async () => {
+  if (!payoutAmount.value || payoutAmount.value <= 0) return;
+  
+  requestingPayout.value = true;
+  try {
+    await GATEWAY_ENDPOINT_WITH_AUTH.post('/finances/request-payout', { amount: payoutAmount.value });
+    showToast({ title: 'Success', message: 'Payout requested successfully. We will process it shortly.', type: 'success' });
+    showPayoutModal.value = false;
+    payoutAmount.value = null;
+    await fetchFinances();
+  } catch (error: any) {
+    showToast({ title: 'Error', message: error.response?.data?.message || 'Failed to request payout', type: 'error' });
+  } finally {
+    requestingPayout.value = false;
+  }
+};
 
 const fetchFinances = async () => {
   loading.value = true;

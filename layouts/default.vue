@@ -27,7 +27,11 @@
         </NuxtLink>
         <NuxtLink to="/subscriptions" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
           <RepeatIcon class="w-5 h-5" />
-          Subscriptions
+          Subscription Plans
+        </NuxtLink>
+        <NuxtLink to="/user-subscriptions" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
+          <UsersIcon class="w-5 h-5" />
+          User Subscriptions
         </NuxtLink>
         <NuxtLink to="/products" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
           <PackageIcon class="w-5 h-5" />
@@ -103,7 +107,8 @@ import {
   MenuIcon,
   XIcon,
   RepeatIcon,
-  SettingsIcon
+  SettingsIcon,
+  UsersIcon
 } from 'lucide-vue-next';
 
 const isMobileMenuOpen = ref(false);
