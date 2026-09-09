@@ -45,8 +45,25 @@
                 <input v-model="form.icon" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="🍅" />
               </div>
               <div class="sm:col-span-2">
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Image URL</label>
-                <input v-model="form.imageUrl" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="https://..." />
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Product Image</label>
+                <div class="flex items-center gap-4">
+                  <div v-if="imagePreview || form.imageUrl" class="relative w-24 h-24 rounded-xl border border-slate-200 overflow-hidden shrink-0">
+                    <img :src="imagePreview || form.imageUrl" class="w-full h-full object-cover" />
+                    <button type="button" @click="clearImage" class="absolute top-1 right-1 p-1.5 bg-white/90 hover:bg-white text-rose-500 rounded-lg shadow-sm transition-colors">
+                      <TrashIcon class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div v-else class="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shrink-0">
+                    <ImageIcon class="w-8 h-8 text-slate-400" />
+                  </div>
+                  <div class="flex-1">
+                    <input type="file" accept="image/*" @change="handleImageChange" class="hidden" ref="fileInput" />
+                    <button type="button" @click="$refs.fileInput?.click()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium">
+                      Choose Image
+                    </button>
+                    <p class="text-xs text-slate-500 mt-2">Upload a high-quality image (JPG, PNG).</p>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
@@ -97,10 +114,37 @@
           <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" v-model="searchQuery" placeholder="Search products..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm" />
         </div>
-        <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shrink-0">
-          <FilterIcon class="w-4 h-4" />
-          Filter
-        </button>
+        <div class="relative">
+          <button @click="showFilterMenu = !showFilterMenu" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shrink-0">
+            <FilterIcon class="w-4 h-4" />
+            Filter
+          </button>
+          
+          <div v-if="showFilterMenu" @click="showFilterMenu = false" class="fixed inset-0 z-40"></div>
+          <div v-if="showFilterMenu" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-50">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Category</label>
+                <select v-model="filterCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                  <option value="">All Categories</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Fruits">Fruits</option>
+                  <option value="Meat">Meat & Seafood</option>
+                  <option value="Dairy">Dairy & Eggs</option>
+                  <option value="Bakery">Bakery</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Stock Status</label>
+                <select v-model="filterStock" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                  <option value="">All Statuses</option>
+                  <option value="in-stock">In Stock</option>
+                  <option value="out-of-stock">Out of Stock</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -132,11 +176,12 @@
               </tr>
             </template>
             <template v-else-if="filteredProducts.length > 0">
-              <tr class="hover:bg-slate-50 transition-colors group" v-for="product in filteredProducts" :key="product._id">
+              <tr class="transition-colors border-b border-slate-50 last:border-0" v-for="product in filteredProducts" :key="product._id">
                 <td class="p-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xl shrink-0">
-                      {{ product.icon || '📦' }}
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                      <img v-if="product.imageUrl" :src="product.imageUrl" class="w-full h-full object-cover" />
+                      <span v-else>{{ product.icon || '📦' }}</span>
                     </div>
                     <div>
                       <div class="font-medium text-slate-900">{{ product.name }}</div>
@@ -161,7 +206,7 @@
                   </span>
                 </td>
                 <td class="p-4 text-right">
-                  <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div class="flex items-center justify-end gap-2">
                     <button @click="openEditModal(product)" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       <EditIcon class="w-4 h-4" />
                     </button>
@@ -190,20 +235,25 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { PlusIcon, SearchIcon, FilterIcon, EditIcon, TrashIcon, PackageIcon } from 'lucide-vue-next';
+import { PlusIcon, SearchIcon, FilterIcon, EditIcon, TrashIcon, PackageIcon, ImageIcon } from 'lucide-vue-next';
 import { useGetProducts } from '~/composables/modules/products/useGetProducts';
 import { useDeleteProduct } from '~/composables/modules/products/useDeleteProduct';
 import { useCreateProduct } from '~/composables/modules/products/useCreateProduct';
 import { useUpdateProduct } from '~/composables/modules/products/useUpdateProduct';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import { useUploadImage } from '~/composables/modules/upload/useUploadImage';
 
 const { loading, products, getProducts } = useGetProducts();
 const { deleteProduct } = useDeleteProduct();
 const { createProduct } = useCreateProduct();
 const { updateProduct } = useUpdateProduct();
 const { showToast } = useCustomToast();
+const { uploadImage, isUploading } = useUploadImage();
 
 const searchQuery = ref('');
+const showFilterMenu = ref(false);
+const filterCategory = ref('');
+const filterStock = ref('');
 
 const showModal = ref(false);
 const editMode = ref(false);
@@ -223,15 +273,39 @@ const showConfirmModal = ref(false);
 const isDeleting = ref(false);
 const productToDelete = ref('');
 
+const fileInput = ref<HTMLInputElement | null>(null);
+const imagePreview = ref<string | null>(null);
+const selectedFile = ref<File | null>(null);
+
+const handleImageChange = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    selectedFile.value = file;
+    imagePreview.value = URL.createObjectURL(file);
+    form.value.imageUrl = '';
+  }
+};
+
+const clearImage = () => {
+  selectedFile.value = null;
+  imagePreview.value = null;
+  form.value.imageUrl = '';
+  if (fileInput.value) fileInput.value.value = '';
+};
+
 const openCreateModal = () => {
   editMode.value = false;
   form.value = { _id: '', name: '', description: '', price: 0, stock: 0, category: '', icon: '', imageUrl: '' };
+  clearImage();
   showModal.value = true;
 };
 
 const openEditModal = (product: any) => {
   editMode.value = true;
   form.value = { ...product };
+  clearImage();
+  imagePreview.value = product.imageUrl || null;
   showModal.value = true;
 };
 
@@ -242,6 +316,10 @@ const closeModal = () => {
 const handleSubmit = async () => {
   isSubmitting.value = true;
   try {
+    if (selectedFile.value) {
+      const uploadedUrl = await uploadImage(selectedFile.value);
+      form.value.imageUrl = uploadedUrl;
+    }
     if (editMode.value) {
       await updateProduct(form.value._id, form.value);
       showToast({ title: 'Success', message: 'Product updated successfully', type: 'success' });
@@ -259,10 +337,24 @@ const handleSubmit = async () => {
 };
 
 const filteredProducts = computed(() => {
-  if (!products.value) return [];
-  if (!searchQuery.value) return products.value;
-  const q = searchQuery.value.toLowerCase();
-  return products.value.filter((p: any) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+  let result = products.value || [];
+  
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase();
+    result = result.filter((p: any) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+  }
+  
+  if (filterCategory.value) {
+    result = result.filter((p: any) => p.category === filterCategory.value || (p.category.includes('Meat') && filterCategory.value === 'Meat') || (p.category.includes('Dairy') && filterCategory.value === 'Dairy'));
+  }
+  
+  if (filterStock.value === 'in-stock') {
+    result = result.filter((p: any) => p.stock > 0);
+  } else if (filterStock.value === 'out-of-stock') {
+    result = result.filter((p: any) => p.stock <= 0);
+  }
+  
+  return result;
 });
 
 onMounted(() => {

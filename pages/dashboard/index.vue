@@ -103,7 +103,7 @@
                 </tr>
               </template>
               <template v-else-if="orders && orders.length > 0">
-                <tr class="hover:bg-slate-50 transition-colors group" v-for="order in orders" :key="order._id">
+                <tr class="transition-colors border-b border-slate-50 last:border-0" v-for="order in orders" :key="order._id">
                   <td class="p-4 font-medium text-slate-700">#ORD-{{ order._id.substring(order._id.length - 6).toUpperCase() }}</td>
                   <td class="p-4">
                     <div class="flex items-center gap-3">

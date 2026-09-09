@@ -34,7 +34,7 @@
               </tr>
             </template>
             <template v-else-if="plans.length > 0">
-              <tr class="hover:bg-slate-50 transition-colors group" v-for="plan in plans" :key="plan._id">
+              <tr class="transition-colors border-b border-slate-50 last:border-0" v-for="plan in plans" :key="plan._id">
                 <td class="p-4">
                   <div class="font-medium text-slate-900">{{ plan.name }}</div>
                   <div class="text-xs text-slate-500 truncate w-48">{{ plan.description }}</div>
@@ -48,7 +48,7 @@
                   <span v-else class="text-slate-400">-</span>
                 </td>
                 <td class="p-4 text-right">
-                  <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div class="flex items-center justify-end gap-2">
                     <button @click="openEditModal(plan)" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       <EditIcon class="w-4 h-4" />
                     </button>

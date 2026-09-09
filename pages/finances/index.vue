@@ -20,8 +20,11 @@
           </div>
           <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Income</span>
         </div>
-        <div class="text-3xl font-bold text-slate-900">₦2,450,000</div>
-        <div class="mt-2 text-sm font-medium text-emerald-600">+14% from last month</div>
+        <div class="text-3xl font-bold text-slate-900">
+          <span v-if="loading" class="animate-pulse bg-slate-200 rounded h-8 w-32 inline-block"></span>
+          <span v-else>₦{{ stats.totalIncome.toLocaleString() }}</span>
+        </div>
+        <div class="mt-2 text-sm font-medium text-emerald-600">All-time Revenue</div>
       </div>
       
       <div class="bg-white p-6 rounded-2xl border border-slate-200">
@@ -31,7 +34,10 @@
           </div>
           <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Available Balance</span>
         </div>
-        <div class="text-3xl font-bold text-slate-900">₦1,250,500</div>
+        <div class="text-3xl font-bold text-slate-900">
+          <span v-if="loading" class="animate-pulse bg-slate-200 rounded h-8 w-32 inline-block"></span>
+          <span v-else>₦{{ stats.availableBalance.toLocaleString() }}</span>
+        </div>
         <button class="mt-4 w-full bg-slate-900 text-white font-medium py-2 rounded-lg hover:bg-slate-800 transition-colors">
           Request Payout
         </button>
@@ -44,7 +50,10 @@
           </div>
           <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Expenses</span>
         </div>
-        <div class="text-3xl font-bold text-slate-900">₦340,000</div>
+        <div class="text-3xl font-bold text-slate-900">
+          <span v-if="loading" class="animate-pulse bg-slate-200 rounded h-8 w-32 inline-block"></span>
+          <span v-else>₦{{ stats.totalExpenses.toLocaleString() }}</span>
+        </div>
         <div class="mt-2 text-sm font-medium text-purple-600">Platform Fees & Refunds</div>
       </div>
     </div>
@@ -54,15 +63,80 @@
       <div class="p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 class="font-bold text-slate-800">Recent Transactions</h2>
       </div>
-      <div class="p-8 text-center text-slate-500">
+      
+      <div v-if="loading" class="p-8 text-center animate-pulse">
+        <div class="h-4 bg-slate-200 rounded w-1/4 mx-auto mb-4"></div>
+        <div class="h-4 bg-slate-200 rounded w-1/3 mx-auto"></div>
+      </div>
+      
+      <div v-else-if="transactions.length === 0" class="p-8 text-center text-slate-500">
         <BanknoteIcon class="w-12 h-12 mx-auto text-slate-300 mb-4" />
         <p class="text-lg font-medium text-slate-700">No recent transactions</p>
         <p class="text-sm mt-1">Your payout history and transactions will appear here.</p>
+      </div>
+      
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+              <th class="p-4 font-semibold border-b border-slate-200">Ref</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Customer</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Amount</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Date</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Status</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-slate-100">
+            <tr v-for="txn in transactions" :key="txn._id" class="transition-colors hover:bg-slate-50">
+              <td class="p-4 text-slate-500 font-mono text-xs">{{ txn._id }}</td>
+              <td class="p-4 text-slate-900 font-medium">{{ txn.guestName || txn.userId?.name || 'Guest' }}</td>
+              <td class="p-4 text-emerald-600 font-semibold">₦{{ (txn.totalAmount || 0).toLocaleString() }}</td>
+              <td class="p-4 text-slate-500">{{ new Date(txn.createdAt).toLocaleDateString() }}</td>
+              <td class="p-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Paid
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { DownloadIcon, ArrowUpRightIcon, WalletIcon, CreditCardIcon, BanknoteIcon } from 'lucide-vue-next';
+import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
+
+const loading = ref(true);
+const stats = ref({
+  totalIncome: 0,
+  availableBalance: 0,
+  totalExpenses: 0
+});
+const transactions = ref<any[]>([]);
+
+const fetchFinances = async () => {
+  loading.value = true;
+  try {
+    const [overviewRes, transactionsRes] = await Promise.all([
+      GATEWAY_ENDPOINT_WITH_AUTH.get('/finances/overview'),
+      GATEWAY_ENDPOINT_WITH_AUTH.get('/finances/transactions')
+    ]);
+    
+    stats.value = overviewRes.data;
+    transactions.value = transactionsRes.data;
+  } catch (error) {
+    console.error('Failed to fetch finances', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchFinances();
+});
 </script>
