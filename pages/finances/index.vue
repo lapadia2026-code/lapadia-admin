@@ -91,7 +91,7 @@
               <td class="p-4 text-slate-500 font-mono text-xs">{{ txn._id }}</td>
               <td class="p-4 text-slate-900 font-medium">{{ txn.guestName || txn.userId?.name || 'Guest' }}</td>
               <td class="p-4 text-emerald-600 font-semibold">₦{{ (txn.totalAmount || 0).toLocaleString() }}</td>
-              <td class="p-4 text-slate-500">{{ new Date(txn.createdAt).toLocaleDateString() }}</td>
+              <td class="p-4 text-slate-500">{{ new Date(txn.createdAt).toLocaleString() }}</td>
               <td class="p-4">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

@@ -70,6 +70,21 @@
         </div>
       </div>
     </div>
+    <!-- Revenue Chart -->
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <h2 class="font-bold text-slate-800 flex items-center gap-2">
+          <TrendingUpIcon class="w-5 h-5 text-slate-500" />
+          Revenue Over Time (Last 30 Days)
+        </h2>
+      </div>
+      <div class="p-6 h-[400px]">
+        <Line v-if="!loadingChart && chartData" :data="chartData" :options="chartOptions" />
+        <div v-else-if="loadingChart" class="w-full h-full flex items-center justify-center">
+          <span class="animate-pulse text-slate-400">Loading chart data...</span>
+        </div>
+      </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Recent Orders Table -->
@@ -126,7 +141,7 @@
                     </span>
                   </td>
                   <td class="p-4 font-semibold text-slate-700">₦{{ order.totalAmount?.toLocaleString() || '0' }}</td>
-                  <td class="p-4 text-slate-500">{{ new Date(order.createdAt).toLocaleDateString() }}</td>
+                  <td class="p-4 text-slate-500">{{ new Date(order.createdAt).toLocaleString() }}</td>
                 </tr>
               </template>
               <template v-else>
@@ -182,8 +197,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '~/composables/useApi';
+const { api } = useApi();
+import { Line } from 'vue-chartjs'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 import { 
   DownloadIcon, 
   PlusIcon, 
@@ -204,6 +225,30 @@ const { loading: loadingOrders, orders, getOrders } = useGetOrders();
 const { loading: loadingStats, stats, getStats } = useGetStats();
 const { loading: loadingProducts, products, getProducts } = useGetProducts();
 
+const loadingChart = ref(true);
+const chartData = ref<any>(null);
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        display: true,
+        color: '#f1f5f9'
+      }
+    },
+    x: {
+      grid: {
+        display: false
+      }
+    }
+  }
+};
+
 onMounted(async () => {
   const token = localStorage.getItem('admin_token');
   if (!token) {
@@ -211,10 +256,23 @@ onMounted(async () => {
     return;
   }
 
+  const fetchChartData = async () => {
+    loadingChart.value = true;
+    try {
+      const res = await api.get('/finances/chart-data');
+      chartData.value = res.data;
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loadingChart.value = false;
+    }
+  };
+
   await Promise.all([
     getStats(),
     getOrders({ limit: 5 }),
-    getProducts()
+    getProducts(),
+    fetchChartData()
   ]);
 });
 </script>

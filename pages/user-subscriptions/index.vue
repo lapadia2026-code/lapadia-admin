@@ -5,11 +5,19 @@
         <h1 class="text-2xl font-bold tracking-tight text-slate-900">User Subscriptions</h1>
         <p class="text-sm text-slate-500 mt-1">Manage user subscriptions, view their plans, and track billing dates.</p>
       </div>
-      <button @click="downloadExcel" :disabled="downloading" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50">
-        <span v-if="downloading" class="w-4 h-4 border-2 border-slate-400 border-t-slate-700 rounded-full animate-spin"></span>
-        <DownloadIcon v-else class="w-4 h-4" />
-        {{ downloading ? 'Exporting...' : 'Download Report' }}
-      </button>
+      <div class="flex items-center gap-3">
+        <select v-model="statusFilter" class="px-3 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm">
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="expired">Expired</option>
+        </select>
+        <button @click="downloadExcel" :disabled="downloading" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50">
+          <span v-if="downloading" class="w-4 h-4 border-2 border-slate-400 border-t-slate-700 rounded-full animate-spin"></span>
+          <DownloadIcon v-else class="w-4 h-4" />
+          {{ downloading ? 'Exporting...' : 'Download Report' }}
+        </button>
+      </div>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
@@ -19,6 +27,7 @@
             <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
               <th class="p-4 font-semibold border-b border-slate-200">Customer</th>
               <th class="p-4 font-semibold border-b border-slate-200">Plan</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Product</th>
               <th class="p-4 font-semibold border-b border-slate-200">Status</th>
               <th class="p-4 font-semibold border-b border-slate-200">Next Billing Date</th>
               <th class="p-4 font-semibold border-b border-slate-200 text-right">Created</th>
@@ -37,13 +46,14 @@
                   </div>
                 </td>
                 <td class="p-4"><div class="h-4 bg-slate-200 rounded w-24"></div></td>
+                <td class="p-4"><div class="h-4 bg-slate-200 rounded w-24"></div></td>
                 <td class="p-4"><div class="h-6 bg-slate-200 rounded-full w-20"></div></td>
                 <td class="p-4"><div class="h-4 bg-slate-200 rounded w-20"></div></td>
                 <td class="p-4"><div class="h-4 bg-slate-200 rounded w-20 float-right"></div></td>
               </tr>
             </template>
-            <template v-else-if="subscriptions.length > 0">
-              <tr class="transition-colors hover:bg-slate-50" v-for="sub in subscriptions" :key="sub._id">
+            <template v-else-if="filteredSubscriptions.length > 0">
+              <tr class="transition-colors hover:bg-slate-50" v-for="sub in filteredSubscriptions" :key="sub._id">
                 <td class="p-4">
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs uppercase">
@@ -55,7 +65,17 @@
                     </div>
                   </div>
                 </td>
-                <td class="p-4 text-slate-900 font-medium">{{ sub.planId?.name || 'Custom Plan' }}</td>
+                <td class="p-4 text-slate-900 font-medium">
+                  <div>{{ sub.planId?.name || 'Custom Plan' }}</div>
+                  <div class="text-xs text-slate-500 font-normal mt-0.5 capitalize">{{ sub.frequency || sub.planId?.frequency || 'N/A' }}</div>
+                </td>
+                <td class="p-4 text-slate-600">
+                  <div v-if="sub.planId?.productId" class="flex items-center gap-2">
+                    <img v-if="sub.planId.productId.images?.[0]" :src="sub.planId.productId.images[0]" class="w-6 h-6 rounded object-cover" />
+                    <span class="truncate w-32" :title="sub.planId.productId.name">{{ sub.planId.productId.name }}</span>
+                  </div>
+                  <span v-else class="text-slate-400 italic">None</span>
+                </td>
                 <td class="p-4">
                   <span :class="[
                     'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border',
@@ -69,13 +89,13 @@
                     {{ sub.status }}
                   </span>
                 </td>
-                <td class="p-4 text-slate-500">{{ sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString() : 'N/A' }}</td>
-                <td class="p-4 text-slate-500 text-right">{{ new Date(sub.createdAt).toLocaleDateString() }}</td>
+                <td class="p-4 text-slate-500">{{ sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleString() : 'N/A' }}</td>
+                <td class="p-4 text-slate-500 text-right">{{ new Date(sub.createdAt).toLocaleString() }}</td>
               </tr>
             </template>
             <template v-else>
               <tr>
-                <td colspan="5" class="p-12 text-center text-slate-500">
+                <td colspan="6" class="p-12 text-center text-slate-500">
                   <p class="text-lg font-medium text-slate-700">No subscriptions found</p>
                   <p class="text-sm mt-1">User subscriptions will appear here.</p>
                 </td>
@@ -89,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { DownloadIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
@@ -98,6 +118,12 @@ const { showToast } = useCustomToast();
 const loading = ref(true);
 const subscriptions = ref<any[]>([]);
 const downloading = ref(false);
+const statusFilter = ref('all');
+
+const filteredSubscriptions = computed(() => {
+  if (statusFilter.value === 'all') return subscriptions.value;
+  return subscriptions.value.filter(sub => sub.status === statusFilter.value);
+});
 
 const fetchSubscriptions = async () => {
   loading.value = true;

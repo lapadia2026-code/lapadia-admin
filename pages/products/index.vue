@@ -33,11 +33,7 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
                 <select v-model="form.category" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors">
                   <option value="" disabled>Select category...</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Meat">Meat</option>
-                  <option value="Dairy">Dairy</option>
-                  <option value="Bakery">Bakery</option>
+                  <option v-for="cat in categories" :key="cat._id" :value="cat.name">{{ cat.name }}</option>
                 </select>
               </div>
               <div>
@@ -65,6 +61,46 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Nutritional Information Section -->
+              <div class="sm:col-span-2 mt-4 pt-4 border-t border-slate-100">
+                <h3 class="text-md font-bold text-slate-800 mb-4">Nutritional Information & Ingredients</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Ingredients (Comma separated)</label>
+                    <textarea v-model="form.ingredientsStr" rows="2" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="e.g. Water, Tomatoes, Salt"></textarea>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Allergens (Comma separated)</label>
+                    <input v-model="form.allergensStr" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="e.g. Nuts, Dairy" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Calories</label>
+                    <input v-model.number="form.nutritionalInfo.calories" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Protein (g)</label>
+                    <input v-model.number="form.nutritionalInfo.protein" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Carbs (g)</label>
+                    <input v-model.number="form.nutritionalInfo.carbs" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Fat (g)</label>
+                    <input v-model.number="form.nutritionalInfo.fat" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Fiber (g)</label>
+                    <input v-model.number="form.nutritionalInfo.fiber" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Sugar (g)</label>
+                    <input v-model.number="form.nutritionalInfo.sugar" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="0" />
+                  </div>
+                </div>
+              </div>
+
             </div>
             <div class="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
               <button type="button" @click="closeModal" class="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
@@ -127,11 +163,7 @@
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Category</label>
                 <select v-model="filterCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                   <option value="">All Categories</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Meat">Meat & Seafood</option>
-                  <option value="Dairy">Dairy & Eggs</option>
-                  <option value="Bakery">Bakery</option>
+                  <option v-for="cat in categories" :key="cat._id" :value="cat.name">{{ cat.name }}</option>
                 </select>
               </div>
               <div>
@@ -242,6 +274,7 @@ import { useCreateProduct } from '~/composables/modules/products/useCreateProduc
 import { useUpdateProduct } from '~/composables/modules/products/useUpdateProduct';
 import { useCustomToast } from '~/composables/core/useCustomToast';
 import { useUploadImage } from '~/composables/modules/upload/useUploadImage';
+import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 
 const { loading, products, getProducts } = useGetProducts();
 const { deleteProduct } = useDeleteProduct();
@@ -249,6 +282,16 @@ const { createProduct } = useCreateProduct();
 const { updateProduct } = useUpdateProduct();
 const { showToast } = useCustomToast();
 const { uploadImage, isUploading } = useUploadImage();
+
+const categories = ref<any[]>([]);
+const fetchCategories = async () => {
+  try {
+    const res = await GATEWAY_ENDPOINT_WITH_AUTH.get('/categories/active');
+    categories.value = res.data;
+  } catch (error) {
+    console.error('Failed to load categories', error);
+  }
+};
 
 const searchQuery = ref('');
 const showFilterMenu = ref(false);
@@ -265,8 +308,20 @@ const form = ref({
   price: 0,
   stock: 0,
   category: '',
+  categoryId: '',
   icon: '',
-  imageUrl: ''
+  imageUrl: '',
+  ingredientsStr: '',
+  allergensStr: '',
+  nutritionalInfo: {
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    fiber: 0,
+    sugar: 0,
+    servingSize: '450ml'
+  }
 });
 
 const showConfirmModal = ref(false);
@@ -296,14 +351,24 @@ const clearImage = () => {
 
 const openCreateModal = () => {
   editMode.value = false;
-  form.value = { _id: '', name: '', description: '', price: 0, stock: 0, category: '', icon: '', imageUrl: '' };
+  form.value = { 
+    _id: '', name: '', description: '', price: 0, stock: 0, category: '', categoryId: '', icon: '', imageUrl: '',
+    ingredientsStr: '',
+    allergensStr: '',
+    nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, servingSize: '450ml' }
+  };
   clearImage();
   showModal.value = true;
 };
 
 const openEditModal = (product: any) => {
   editMode.value = true;
-  form.value = { ...product };
+  form.value = { 
+    ...product,
+    ingredientsStr: product.ingredients ? product.ingredients.join(', ') : '',
+    allergensStr: product.allergens ? product.allergens.join(', ') : '',
+    nutritionalInfo: product.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, servingSize: '450ml' }
+  };
   clearImage();
   imagePreview.value = product.imageUrl || null;
   showModal.value = true;
@@ -320,11 +385,22 @@ const handleSubmit = async () => {
       const uploadedUrl = await uploadImage(selectedFile.value);
       form.value.imageUrl = uploadedUrl;
     }
+    
+    // Parse strings to arrays
+    const selectedCategory = categories.value.find(c => c.name === form.value.category);
+    
+    const payload = {
+      ...form.value,
+      categoryId: selectedCategory ? selectedCategory._id : null,
+      ingredients: form.value.ingredientsStr ? form.value.ingredientsStr.split(',').map(s => s.trim()).filter(s => s) : [],
+      allergens: form.value.allergensStr ? form.value.allergensStr.split(',').map(s => s.trim()).filter(s => s) : []
+    };
+
     if (editMode.value) {
-      await updateProduct(form.value._id, form.value);
+      await updateProduct(form.value._id, payload);
       showToast({ title: 'Success', message: 'Product updated successfully', type: 'success' });
     } else {
-      await createProduct(form.value);
+      await createProduct(payload);
       showToast({ title: 'Success', message: 'Product created successfully', type: 'success' });
     }
     closeModal();
@@ -358,6 +434,7 @@ const filteredProducts = computed(() => {
 });
 
 onMounted(() => {
+  fetchCategories();
   getProducts();
 });
 

@@ -60,7 +60,7 @@
               <th class="p-4 font-semibold border-b border-slate-200">Customer</th>
               <th class="p-4 font-semibold border-b border-slate-200">Payment Status</th>
               <th class="p-4 font-semibold border-b border-slate-200">Amount</th>
-              <th class="p-4 font-semibold border-b border-slate-200">Date</th>
+              <th class="p-4 font-semibold border-b border-slate-200">Date/Schedule</th>
               <th class="p-4 font-semibold border-b border-slate-200 text-right">Actions</th>
             </tr>
           </thead>
@@ -110,7 +110,12 @@
                   </span>
                 </td>
                 <td class="p-4 font-semibold text-emerald-600">₦{{ order.totalAmount?.toLocaleString() || '0' }}</td>
-                <td class="p-4 text-slate-500">{{ new Date(order.createdAt).toLocaleDateString() }}</td>
+                <td class="p-4">
+                  <div class="text-slate-500">{{ new Date(order.createdAt).toLocaleString() }}</div>
+                  <div v-if="order.scheduledTime" class="text-xs font-bold text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded-md w-fit">
+                    Scheduled: {{ new Date(order.scheduledTime).toLocaleString() }}
+                  </div>
+                </td>
                 <td class="p-4 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button @click="viewDetails(order)" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View details">
@@ -165,6 +170,10 @@
               <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Delivery Details</h4>
               <p class="text-sm text-slate-700 whitespace-pre-wrap">{{ selectedOrder.deliveryAddress || 'No address provided' }}</p>
               <p class="text-sm text-slate-500 mt-1">Time: <span class="capitalize">{{ selectedOrder.deliveryTime || 'Standard' }}</span></p>
+              <div v-if="selectedOrder.scheduledTime" class="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <p class="text-xs font-bold text-amber-800">Scheduled For:</p>
+                <p class="text-sm font-semibold text-amber-900">{{ new Date(selectedOrder.scheduledTime).toLocaleString() }}</p>
+              </div>
             </div>
           </div>
           
