@@ -31,6 +31,7 @@
               <th class="p-4 font-semibold border-b border-slate-200">Status</th>
               <th class="p-4 font-semibold border-b border-slate-200">Next Billing Date</th>
               <th class="p-4 font-semibold border-b border-slate-200 text-right">Created</th>
+              <th class="p-4 font-semibold border-b border-slate-200 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="text-sm divide-y divide-slate-100">
@@ -50,6 +51,7 @@
                 <td class="p-4"><div class="h-6 bg-slate-200 rounded-full w-20"></div></td>
                 <td class="p-4"><div class="h-4 bg-slate-200 rounded w-20"></div></td>
                 <td class="p-4"><div class="h-4 bg-slate-200 rounded w-20 float-right"></div></td>
+                <td class="p-4"><div class="h-8 bg-slate-200 rounded-lg w-16 float-right"></div></td>
               </tr>
             </template>
             <template v-else-if="filteredSubscriptions.length > 0">
@@ -70,9 +72,17 @@
                   <div class="text-xs text-slate-500 font-normal mt-0.5 capitalize">{{ sub.frequency || sub.planId?.frequency || 'N/A' }}</div>
                 </td>
                 <td class="p-4 text-slate-600">
-                  <div v-if="sub.planId?.productId" class="flex items-center gap-2">
-                    <img v-if="sub.planId.productId.images?.[0]" :src="sub.planId.productId.images[0]" class="w-6 h-6 rounded object-cover" />
-                    <span class="truncate w-32" :title="sub.planId.productId.name">{{ sub.planId.productId.name }}</span>
+                  <div v-if="sub.items?.length" class="flex flex-col gap-1.5">
+                    <div v-for="(item, idx) in sub.items.slice(0, 2)" :key="idx" class="flex items-center gap-2">
+                      <img v-if="item.productId?.images?.[0]" :src="item.productId.images[0]" class="w-6 h-6 rounded object-cover" />
+                      <span class="truncate w-32 text-xs" :title="item.productId?.name">{{ item.productId?.name || 'Unknown' }}</span>
+                    </div>
+                    <div v-if="sub.items.length > 2" class="text-xs text-blue-600 font-medium">+{{ sub.items.length - 2 }} more</div>
+                  </div>
+                  <div v-else-if="sub.planId?.productIds?.length" class="flex flex-col gap-1.5">
+                     <div v-for="(pid, idx) in sub.planId.productIds.slice(0, 2)" :key="idx" class="flex items-center gap-2">
+                      <span class="truncate w-32 text-xs text-slate-400 italic">Plan Default</span>
+                     </div>
                   </div>
                   <span v-else class="text-slate-400 italic">None</span>
                 </td>
@@ -91,6 +101,11 @@
                 </td>
                 <td class="p-4 text-slate-500">{{ sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleString() : 'N/A' }}</td>
                 <td class="p-4 text-slate-500 text-right">{{ new Date(sub.createdAt).toLocaleString() }}</td>
+                <td class="p-4 text-right">
+                  <button @click="openManageModal(sub)" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-xs font-medium transition-colors">
+                    Manage
+                  </button>
+                </td>
               </tr>
             </template>
             <template v-else>
@@ -103,6 +118,38 @@
             </template>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Status Modal -->
+  <div v-if="isManageModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+      <div class="flex items-center justify-between p-6 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800">Manage Subscription</h3>
+        <button @click="closeManageModal" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div class="p-6 space-y-6">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Subscription Status</label>
+          <select v-model="selectedStatus" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="expired">Expired</option>
+          </select>
+          <p class="mt-2 text-xs text-slate-500">Updating the status to cancelled will prevent future billing for this subscription.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 p-6 border-t border-slate-100 bg-slate-50/50">
+        <button @click="closeManageModal" class="px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
+        <button @click="updateSubscriptionStatus" :disabled="saving" class="px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
       </div>
     </div>
   </div>
@@ -120,10 +167,45 @@ const subscriptions = ref<any[]>([]);
 const downloading = ref(false);
 const statusFilter = ref('all');
 
+const isManageModalOpen = ref(false);
+const selectedSub = ref<any>(null);
+const selectedStatus = ref('');
+const saving = ref(false);
+
 const filteredSubscriptions = computed(() => {
   if (statusFilter.value === 'all') return subscriptions.value;
   return subscriptions.value.filter(sub => sub.status === statusFilter.value);
 });
+
+const openManageModal = (sub: any) => {
+  selectedSub.value = sub;
+  selectedStatus.value = sub.status;
+  isManageModalOpen.value = true;
+};
+
+const closeManageModal = () => {
+  isManageModalOpen.value = false;
+  selectedSub.value = null;
+};
+
+const updateSubscriptionStatus = async () => {
+  if (!selectedSub.value) return;
+  saving.value = true;
+  try {
+    const response = await GATEWAY_ENDPOINT_WITH_AUTH.put(`/subscriptions/admin/user-subscriptions/${selectedSub.value._id}/status`, {
+      status: selectedStatus.value
+    });
+    
+    // Update local state
+    selectedSub.value.status = selectedStatus.value;
+    showToast({ title: 'Success', message: 'Subscription status updated', type: 'success' });
+    closeManageModal();
+  } catch (error) {
+    showToast({ title: 'Error', message: 'Failed to update subscription', type: 'error' });
+  } finally {
+    saving.value = false;
+  }
+};
 
 const fetchSubscriptions = async () => {
   loading.value = true;
