@@ -102,9 +102,14 @@
                 <td class="p-4 text-slate-500">{{ sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleString() : 'N/A' }}</td>
                 <td class="p-4 text-slate-500 text-right">{{ new Date(sub.createdAt).toLocaleString() }}</td>
                 <td class="p-4 text-right">
-                  <button @click="openManageModal(sub)" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-xs font-medium transition-colors">
-                    Manage
-                  </button>
+                  <div class="flex items-center justify-end gap-2">
+                    <button @click="openManageModal(sub)" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-xs font-medium transition-colors">
+                      Manage
+                    </button>
+                    <button @click="openDeliveryModal(sub)" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-xs font-medium transition-colors">
+                      Track
+                    </button>
+                  </div>
                 </td>
               </tr>
             </template>
@@ -153,6 +158,52 @@
       </div>
     </div>
   </div>
+
+  <!-- Track Delivery Logs Modal -->
+  <div v-if="isDeliveryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between p-6 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800">Track Deliveries</h3>
+        <button @click="closeDeliveryModal" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div class="p-6 overflow-y-auto flex-1 bg-slate-50">
+        <div v-if="selectedSub?.deliveryLogs?.length" class="space-y-4 relative before:absolute before:inset-y-0 before:left-[15px] before:w-0.5 before:bg-slate-200">
+          <div v-for="(log, idx) in selectedSub.deliveryLogs.slice().reverse()" :key="idx" class="relative pl-10">
+            <div class="absolute left-[11px] top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-50"></div>
+            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-bold text-slate-800 capitalize">{{ log.status }}</span>
+                <span class="text-xs text-slate-500 font-medium">{{ new Date(log.date).toLocaleString() }}</span>
+              </div>
+              <p class="text-sm text-slate-600">{{ log.notes }}</p>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-8 text-slate-500">
+          No delivery logs found.
+        </div>
+      </div>
+
+      <div class="p-6 border-t border-slate-100 bg-white">
+        <h4 class="text-sm font-bold text-slate-800 mb-3">Add New Log</h4>
+        <div class="space-y-3">
+          <select v-model="newLogStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+            <option value="preparing">Preparing</option>
+            <option value="dispatched">Dispatched</option>
+            <option value="delivered">Delivered</option>
+            <option value="failed">Failed / Attempted</option>
+          </select>
+          <textarea v-model="newLogNotes" placeholder="Delivery notes..." rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm resize-none"></textarea>
+          <button @click="addDeliveryLog" :disabled="savingLog || !newLogStatus || !newLogNotes" class="w-full px-4 py-2 text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
+            {{ savingLog ? 'Adding...' : 'Add Log' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -172,6 +223,11 @@ const selectedSub = ref<any>(null);
 const selectedStatus = ref('');
 const saving = ref(false);
 
+const isDeliveryModalOpen = ref(false);
+const newLogStatus = ref('');
+const newLogNotes = ref('');
+const savingLog = ref(false);
+
 const filteredSubscriptions = computed(() => {
   if (statusFilter.value === 'all') return subscriptions.value;
   return subscriptions.value.filter(sub => sub.status === statusFilter.value);
@@ -186,6 +242,18 @@ const openManageModal = (sub: any) => {
 const closeManageModal = () => {
   isManageModalOpen.value = false;
   selectedSub.value = null;
+};
+
+const openDeliveryModal = (sub: any) => {
+  selectedSub.value = sub;
+  newLogStatus.value = '';
+  newLogNotes.value = '';
+  isDeliveryModalOpen.value = true;
+};
+
+const closeDeliveryModal = () => {
+  isDeliveryModalOpen.value = false;
+  if (!isManageModalOpen.value) selectedSub.value = null;
 };
 
 const updateSubscriptionStatus = async () => {
@@ -204,6 +272,38 @@ const updateSubscriptionStatus = async () => {
     showToast({ title: 'Error', message: 'Failed to update subscription', type: 'error' });
   } finally {
     saving.value = false;
+  }
+};
+
+const addDeliveryLog = async () => {
+  if (!selectedSub.value || !newLogStatus.value || !newLogNotes.value) return;
+  savingLog.value = true;
+  try {
+    const response = await GATEWAY_ENDPOINT_WITH_AUTH.post(`/subscriptions/admin/user-subscriptions/${selectedSub.value._id}/deliveries`, {
+      status: newLogStatus.value,
+      notes: newLogNotes.value
+    });
+    
+    // Update local state (the API returns the updated subscription)
+    if (response.data && response.data.deliveryLogs) {
+      selectedSub.value.deliveryLogs = response.data.deliveryLogs;
+    } else {
+      // Fallback optimistic update
+      if (!selectedSub.value.deliveryLogs) selectedSub.value.deliveryLogs = [];
+      selectedSub.value.deliveryLogs.push({
+        status: newLogStatus.value,
+        notes: newLogNotes.value,
+        date: new Date().toISOString()
+      });
+    }
+    
+    showToast({ title: 'Success', message: 'Delivery log added', type: 'success' });
+    newLogStatus.value = '';
+    newLogNotes.value = '';
+  } catch (error) {
+    showToast({ title: 'Error', message: 'Failed to add delivery log', type: 'error' });
+  } finally {
+    savingLog.value = false;
   }
 };
 
