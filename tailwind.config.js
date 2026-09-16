@@ -3,6 +3,10 @@ export default {
   content: [],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Outfit', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
+      },
       colors: {
         blue: {
           50: '#f0f9f1',

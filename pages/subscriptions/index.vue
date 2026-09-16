@@ -47,7 +47,7 @@
                   <!-- Show productIds if available, fallback to legacy productId -->
                   <div v-if="plan.productIds && plan.productIds.length > 0" class="flex flex-wrap gap-1.5">
                     <div v-for="prod in plan.productIds" :key="prod._id" class="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-full pl-0.5 pr-2 py-0.5">
-                      <img v-if="prod.images?.[0]" :src="prod.images[0]" class="w-5 h-5 rounded-full object-cover" />
+                      <img v-if="prod.imageUrl" :src="prod.imageUrl" class="w-5 h-5 rounded-full object-cover" />
                       <div v-else class="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center">
                         <PackageIcon class="w-3 h-3 text-slate-400" />
                       </div>
@@ -55,7 +55,7 @@
                     </div>
                   </div>
                   <div v-else-if="plan.productId" class="flex items-center gap-2">
-                    <img v-if="plan.productId.images?.[0]" :src="plan.productId.images[0]" class="w-6 h-6 rounded object-cover" />
+                    <img v-if="plan.productId.imageUrl" :src="plan.productId.imageUrl" class="w-6 h-6 rounded object-cover" />
                     <span class="truncate w-32" :title="plan.productId.name">{{ plan.productId.name }}</span>
                   </div>
                   <span v-else class="text-slate-400 italic">None</span>
@@ -135,8 +135,8 @@
                   class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full pl-1 pr-2 py-1 group"
                 >
                   <img 
-                    v-if="getProductById(prodId)?.images?.[0]" 
-                    :src="getProductById(prodId).images[0]" 
+                    v-if="getProductById(prodId)?.imageUrl" 
+                    :src="getProductById(prodId).imageUrl" 
                     class="w-6 h-6 rounded-full object-cover"
                   />
                   <div v-else class="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center">
@@ -174,8 +174,8 @@
                 >
                   <div class="relative flex-shrink-0">
                     <img 
-                      v-if="prod.images?.[0]" 
-                      :src="prod.images[0]" 
+                      v-if="prod.imageUrl" 
+                      :src="prod.imageUrl" 
                       class="w-10 h-10 rounded-lg object-cover border border-slate-100"
                     />
                     <div v-else class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
@@ -237,8 +237,8 @@
                   class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full pl-1 pr-2 py-1 group"
                 >
                   <img 
-                    v-if="getProductById(prodId)?.images?.[0]" 
-                    :src="getProductById(prodId).images[0]" 
+                    v-if="getProductById(prodId)?.imageUrl" 
+                    :src="getProductById(prodId).imageUrl" 
                     class="w-6 h-6 rounded-full object-cover"
                   />
                   <div v-else class="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center">
@@ -276,8 +276,8 @@
                 >
                   <div class="relative flex-shrink-0">
                     <img 
-                      v-if="prod.images?.[0]" 
-                      :src="prod.images[0]" 
+                      v-if="prod.imageUrl" 
+                      :src="prod.imageUrl" 
                       class="w-10 h-10 rounded-lg object-cover border border-slate-100"
                     />
                     <div v-else class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex overflow-hidden">
+  <div class="h-screen bg-slate-50 flex overflow-hidden">
     <!-- Mobile Sidebar Overlay -->
     <div v-if="isMobileMenuOpen" class="fixed inset-0 bg-slate-900/50 z-20 md:hidden" @click="isMobileMenuOpen = false"></div>
 
@@ -60,6 +60,10 @@
         <NuxtLink to="/finances" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Finances' : ''">
           <BanknoteIcon class="w-5 h-5 shrink-0" />
           <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Finances</span>
+        </NuxtLink>
+        <NuxtLink to="/messages" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Support Messages' : ''">
+          <MessageSquareIcon class="w-5 h-5 shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Support Messages</span>
         </NuxtLink>
         <NuxtLink to="/settings" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Settings' : ''">
           <SettingsIcon class="w-5 h-5 shrink-0" />
@@ -140,7 +144,8 @@ import {
   RepeatIcon,
   UsersIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  MessageSquareIcon
 } from 'lucide-vue-next';
 
 const isMobileMenuOpen = ref(false);
@@ -157,6 +162,15 @@ const logout = () => {
   router.push('/auth/login');
 };
 </script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+html, body {
+  font-size: 14px;
+  font-family: 'Outfit', sans-serif !important;
+}
+</style>
 
 <style scoped>
 .router-link-active {
