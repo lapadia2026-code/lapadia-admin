@@ -50,6 +50,20 @@
           </div>
         </div>
 
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Pickup Location</h2>
+          <div class="max-w-2xl space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Store / Pickup Address</label>
+            <input 
+              v-model="form.pickupLocation" 
+              type="text" 
+              class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" 
+              placeholder="e.g. 15 Awolowo Road, Ikoyi, Lagos" 
+            />
+            <p class="text-xs text-slate-500">This address will be shown to users when they select 'Pickup' at checkout.</p>
+          </div>
+        </div>
+
         <div class="pt-4 border-t border-slate-100 flex items-center gap-4">
           <button 
             type="submit" 
@@ -76,7 +90,8 @@ const { showToast } = useCustomToast();
 const form = ref({
   expressDeliveryFee: 1500,
   whatsappNumber1: '',
-  whatsappNumber2: ''
+  whatsappNumber2: '',
+  pickupLocation: ''
 });
 
 onMounted(async () => {
@@ -84,6 +99,7 @@ onMounted(async () => {
   form.value.expressDeliveryFee = settings.value.expressDeliveryFee;
   form.value.whatsappNumber1 = settings.value.whatsappNumber1 || '';
   form.value.whatsappNumber2 = settings.value.whatsappNumber2 || '';
+  form.value.pickupLocation = settings.value.pickupLocation || '';
 });
 
 const saveSettings = async () => {
@@ -91,7 +107,8 @@ const saveSettings = async () => {
     await updateSettings({ 
       expressDeliveryFee: form.value.expressDeliveryFee,
       whatsappNumber1: form.value.whatsappNumber1,
-      whatsappNumber2: form.value.whatsappNumber2
+      whatsappNumber2: form.value.whatsappNumber2,
+      pickupLocation: form.value.pickupLocation
     });
     showToast({ title: 'Success', message: 'Settings updated successfully.', type: 'success' });
   } catch (error) {
