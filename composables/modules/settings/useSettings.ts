@@ -1,15 +1,14 @@
 import { ref } from 'vue';
-import { useApi } from '~/composables/useApi';
+import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 
 export const useSettings = () => {
-  const { api: $api } = useApi();
   const loading = ref(false);
   const settings = ref({ expressDeliveryFee: 1500 });
 
   const getSettings = async () => {
     loading.value = true;
     try {
-      const response = await $api.get('/settings');
+      const response = await GATEWAY_ENDPOINT_WITH_AUTH.get('/settings');
       settings.value = response.data;
     } catch (e: any) {
       console.error('Failed to get settings', e);
@@ -21,7 +20,7 @@ export const useSettings = () => {
   const updateSettings = async (payload: any) => {
     loading.value = true;
     try {
-      const response = await $api.put('/settings', payload);
+      const response = await GATEWAY_ENDPOINT_WITH_AUTH.put('/settings', payload);
       settings.value = response.data;
       return response.data;
     } catch (e: any) {
