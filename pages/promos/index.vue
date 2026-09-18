@@ -62,14 +62,15 @@
 
     <!-- Create Modal -->
     <div v-if="showCreateModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl flex flex-col max-h-[90vh]">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <h3 class="text-lg font-bold text-slate-900">Create Promo Code</h3>
           <button @click="showCreateModal = false" class="text-slate-400 hover:text-slate-500">
             <XIcon class="w-5 h-5" />
           </button>
         </div>
-        <form @submit.prevent="createPromo" class="p-6 space-y-4">
+        <form @submit.prevent="createPromo" class="flex flex-col flex-1 overflow-hidden">
+          <div class="p-6 space-y-4 overflow-y-auto flex-1">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Code</label>
             <input v-model="form.code" type="text" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono" placeholder="SUMMER20">
@@ -91,7 +92,8 @@
             <label class="block text-sm font-medium text-slate-700 mb-1">Max Uses (Optional)</label>
             <input v-model="form.maxUses" type="number" min="1" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Leave blank for unlimited">
           </div>
-          <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+          </div>
+          <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
             <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium">Cancel</button>
             <button type="submit" :disabled="creating" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50">
               {{ creating ? 'Creating...' : 'Create Promo' }}

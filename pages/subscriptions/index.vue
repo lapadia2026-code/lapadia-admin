@@ -92,7 +92,7 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" @click.self="closeModal">
+    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div class="p-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
           <h2 class="text-xl font-bold text-slate-900">{{ isEditing ? 'Edit Plan' : 'New Plan' }}</h2>
@@ -100,8 +100,8 @@
             <XIcon class="w-5 h-5" />
           </button>
         </div>
-        <form @submit.prevent="savePlan" class="flex-1 overflow-y-auto">
-          <div class="p-6 space-y-5">
+        <form @submit.prevent="savePlan" class="flex flex-col flex-1 overflow-hidden">
+          <div class="p-6 space-y-5 overflow-y-auto flex-1">
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-1.5">Plan Name</label>
               <input v-model="form.name" type="text" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 bg-slate-50 transition-all" placeholder="e.g. Weekly Basic" />

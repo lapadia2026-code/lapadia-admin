@@ -1,5 +1,9 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50">
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 relative">
+    <NuxtLink to="/" class="absolute top-6 left-6 md:top-8 md:left-8 text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 text-sm font-bold bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 z-10">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      Back
+    </NuxtLink>
     <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl border border-slate-200 shadow-xl">
       <div>
         <h2 class="mt-2 text-center text-3xl font-extrabold text-slate-900">
