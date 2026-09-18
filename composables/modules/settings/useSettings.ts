@@ -1,8 +1,8 @@
 import { ref } from 'vue';
-import { useNuxtApp } from '#app';
+import { useApi } from '~/composables/useApi';
 
 export const useSettings = () => {
-  const { $api } = useNuxtApp();
+  const { api: $api } = useApi();
   const loading = ref(false);
   const settings = ref({ expressDeliveryFee: 1500 });
 
