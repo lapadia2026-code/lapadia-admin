@@ -41,23 +41,22 @@
                 <input v-model="form.icon" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors" placeholder="🍅" />
               </div>
               <div class="sm:col-span-2">
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Product Image</label>
-                <div class="flex items-center gap-4">
-                  <div v-if="imagePreview || form.imageUrl" class="relative w-24 h-24 rounded-xl border border-slate-200 overflow-hidden shrink-0">
-                    <img :src="imagePreview || form.imageUrl" class="w-full h-full object-cover" />
-                    <button type="button" @click="clearImage" class="absolute top-1 right-1 p-1.5 bg-white/90 hover:bg-white text-rose-500 rounded-lg shadow-sm transition-colors">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Product Images</label>
+                <div class="flex flex-wrap items-center gap-4">
+                  <!-- Existing / Uploaded Images Preview -->
+                  <div v-for="(img, idx) in imagePreviews" :key="idx" class="relative w-24 h-24 rounded-xl border border-slate-200 overflow-hidden shrink-0">
+                    <img :src="img" class="w-full h-full object-cover" />
+                    <button type="button" @click="removeImage(idx)" class="absolute top-1 right-1 p-1 bg-white/90 hover:bg-white text-rose-500 rounded-lg shadow-sm transition-colors">
                       <TrashIcon class="w-4 h-4" />
                     </button>
                   </div>
-                  <div v-else class="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shrink-0">
-                    <ImageIcon class="w-8 h-8 text-slate-400" />
-                  </div>
-                  <div class="flex-1">
-                    <input type="file" accept="image/*" @change="handleImageChange" class="hidden" ref="fileInput" />
+                  
+                  <div class="flex-1 min-w-[200px]">
+                    <input type="file" accept="image/*" multiple @change="handleMultipleImagesChange" class="hidden" ref="fileInput" />
                     <button type="button" @click="$refs.fileInput?.click()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium">
-                      Choose Image
+                      Add Images
                     </button>
-                    <p class="text-xs text-slate-500 mt-2">Upload a high-quality image (JPG, PNG).</p>
+                    <p class="text-xs text-slate-500 mt-2">Upload high-quality images (JPG, PNG). You can select multiple files.</p>
                   </div>
                 </div>
               </div>
@@ -311,6 +310,7 @@ const form = ref({
   categoryId: '',
   icon: '',
   imageUrl: '',
+  images: [] as string[],
   ingredientsStr: '',
   allergensStr: '',
   nutritionalInfo: {
@@ -329,35 +329,50 @@ const isDeleting = ref(false);
 const productToDelete = ref('');
 
 const fileInput = ref<HTMLInputElement | null>(null);
-const imagePreview = ref<string | null>(null);
-const selectedFile = ref<File | null>(null);
+const imagePreviews = ref<string[]>([]);
+const selectedFiles = ref<File[]>([]);
 
-const handleImageChange = (e: Event) => {
+const handleMultipleImagesChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
-    const file = target.files[0];
-    selectedFile.value = file;
-    imagePreview.value = URL.createObjectURL(file);
-    form.value.imageUrl = '';
+    const filesArray = Array.from(target.files);
+    filesArray.forEach(file => {
+      selectedFiles.value.push(file);
+      imagePreviews.value.push(URL.createObjectURL(file));
+    });
   }
 };
 
-const clearImage = () => {
-  selectedFile.value = null;
-  imagePreview.value = null;
+const removeImage = (index: number) => {
+  // If the image being removed is already uploaded (has a remote URL in form.images)
+  if (index < form.value.images.length) {
+    form.value.images.splice(index, 1);
+  } else {
+    // If it's a newly selected local file
+    const localIndex = index - form.value.images.length;
+    selectedFiles.value.splice(localIndex, 1);
+  }
+  imagePreviews.value.splice(index, 1);
+  if (fileInput.value) fileInput.value.value = '';
+};
+
+const clearImages = () => {
+  selectedFiles.value = [];
+  imagePreviews.value = [];
   form.value.imageUrl = '';
+  form.value.images = [];
   if (fileInput.value) fileInput.value.value = '';
 };
 
 const openCreateModal = () => {
   editMode.value = false;
   form.value = { 
-    _id: '', name: '', description: '', price: 0, stock: 0, category: '', categoryId: '', icon: '', imageUrl: '',
+    _id: '', name: '', description: '', price: 0, stock: 0, category: '', categoryId: '', icon: '', imageUrl: '', images: [],
     ingredientsStr: '',
     allergensStr: '',
     nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, servingSize: '450ml' }
   };
-  clearImage();
+  clearImages();
   showModal.value = true;
 };
 
@@ -365,12 +380,20 @@ const openEditModal = (product: any) => {
   editMode.value = true;
   form.value = { 
     ...product,
+    images: product.images || [],
     ingredientsStr: product.ingredients ? product.ingredients.join(', ') : '',
     allergensStr: product.allergens ? product.allergens.join(', ') : '',
     nutritionalInfo: product.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, servingSize: '450ml' }
   };
-  clearImage();
-  imagePreview.value = product.imageUrl || null;
+  clearImages();
+  // Preserve existing images
+  if (product.images && product.images.length > 0) {
+    form.value.images = [...product.images];
+    imagePreviews.value = [...product.images];
+  } else if (product.imageUrl) {
+    form.value.images = [product.imageUrl];
+    imagePreviews.value = [product.imageUrl];
+  }
   showModal.value = true;
 };
 
@@ -381,9 +404,17 @@ const closeModal = () => {
 const handleSubmit = async () => {
   isSubmitting.value = true;
   try {
-    if (selectedFile.value) {
-      const uploadedUrl = await uploadImage(selectedFile.value);
-      form.value.imageUrl = uploadedUrl;
+    // Upload newly selected files
+    if (selectedFiles.value.length > 0) {
+      for (const file of selectedFiles.value) {
+        const uploadedUrl = await uploadImage(file);
+        form.value.images.push(uploadedUrl);
+      }
+    }
+    
+    // Set imageUrl to the first image for backward compatibility
+    if (form.value.images.length > 0) {
+      form.value.imageUrl = form.value.images[0];
     }
     
     // Parse strings to arrays
