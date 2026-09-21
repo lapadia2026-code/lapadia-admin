@@ -13,7 +13,7 @@
     >
       <div class="h-16 flex items-center justify-between px-4 font-bold text-xl tracking-wider border-b border-slate-800 text-white">
         <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-          <img src="@/assets/img/logo.jpg" class="h-10 w-10 shrink-0 rounded-full object-cover" />
+          <img src="/logo.jpg" class="h-10 w-10 shrink-0 rounded-full object-cover" />
           <span v-if="!isSidebarCollapsed" class="text-sm">Lapadia Fresh</span>
         </div>
         <button @click="isMobileMenuOpen = false" class="md:hidden text-slate-400 hover:text-white">
@@ -41,9 +41,17 @@
           <PackageIcon class="w-5 h-5 shrink-0" />
           <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Products</span>
         </NuxtLink>
+        <NuxtLink to="/subscription-products" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Subscription Products' : ''">
+          <BoxIcon class="w-5 h-5 shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Subscription Products</span>
+        </NuxtLink>
         <NuxtLink to="/categories" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Categories' : ''">
           <FolderTreeIcon class="w-5 h-5 shrink-0" />
           <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Categories</span>
+        </NuxtLink>
+        <NuxtLink to="/addons" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Add-ons' : ''">
+          <PlusCircleIcon class="w-5 h-5 shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Add-ons</span>
         </NuxtLink>
         <NuxtLink to="/promos" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Promo Codes' : ''">
           <TagIcon class="w-5 h-5 shrink-0" />
@@ -142,6 +150,7 @@ import {
   MenuIcon,
   XIcon,
   RefreshCwIcon,
+  PlusCircleIcon,
   BanknoteIcon,
   BoxIcon,
   RepeatIcon,

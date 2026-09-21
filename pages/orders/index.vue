@@ -46,6 +46,14 @@
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Order Type</label>
+                  <select v-model="subscriptionFilter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <option value="">All Orders</option>
+                    <option value="subscription">Subscriptions Only</option>
+                    <option value="one-off">One-off Orders</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -174,6 +182,9 @@
                 <p class="text-xs font-bold text-amber-800">Scheduled For:</p>
                 <p class="text-sm font-semibold text-amber-900">{{ new Date(selectedOrder.scheduledTime).toLocaleString() }}</p>
               </div>
+              <div v-if="selectedOrder.deliverAllAtOnce" class="mt-2 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded w-fit">
+                Deliver All At Once
+              </div>
             </div>
           </div>
           
@@ -190,9 +201,16 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                   <tr v-for="item in selectedOrder.items" :key="item._id">
-                    <td class="px-4 py-3">{{ item.productId?.name || 'Unknown Product' }}</td>
-                    <td class="px-4 py-3 text-slate-500">x{{ item.quantity }}</td>
-                    <td class="px-4 py-3 text-right font-medium">₦{{ (item.priceAtPurchase || 0).toLocaleString() }}</td>
+                    <td class="px-4 py-3">
+                      <div class="font-medium">{{ item.productId?.name || 'Unknown Product' }}</div>
+                      <div class="text-xs text-slate-500 mt-1 space-y-0.5">
+                        <div v-if="item.selectedVariant"><span class="font-medium text-slate-700">Variant:</span> {{ item.selectedVariant }}</div>
+                        <div v-if="item.selectedAddons && item.selectedAddons.length > 0"><span class="font-medium text-slate-700">Add-ons:</span> {{ item.selectedAddons.join(', ') }}</div>
+                        <div v-if="item.frequency"><span class="font-medium text-slate-700">Freq:</span> {{ item.frequency }}</div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-500 align-top">x{{ item.quantity }}</td>
+                    <td class="px-4 py-3 text-right font-medium align-top">₦{{ (item.priceAtPurchase || 0).toLocaleString() }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -242,6 +260,7 @@ const { showToast } = useCustomToast();
 const searchQuery = ref('');
 const statusFilter = ref('');
 const orderStatusFilter = ref('');
+const subscriptionFilter = ref('');
 const showFilterMenu = ref(false);
 const downloading = ref(false);
 
@@ -334,6 +353,12 @@ const filteredOrders = computed(() => {
       (o.guestName && o.guestName.toLowerCase().includes(q)) ||
       (o.guestEmail && o.guestEmail.toLowerCase().includes(q))
     );
+  }
+
+  if (subscriptionFilter.value === 'subscription') {
+    filtered = filtered.filter((o: any) => o.subscriptionId);
+  } else if (subscriptionFilter.value === 'one-off') {
+    filtered = filtered.filter((o: any) => !o.subscriptionId);
   }
 
   return filtered;

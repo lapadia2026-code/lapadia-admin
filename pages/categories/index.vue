@@ -89,10 +89,23 @@
         <h1 class="text-2xl font-bold tracking-tight text-slate-900">Categories</h1>
         <p class="text-sm text-slate-500 mt-1">Manage product categories to organize your store.</p>
       </div>
-      <button @click="openCreateModal" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-        <PlusIcon class="w-4 h-4" />
-        New Category
-      </button>
+      <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <input 
+          type="text" 
+          v-model="filterSearch"
+          placeholder="Search categories..." 
+          class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-w-[200px]"
+        />
+        <select v-model="filterStatus" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button @click="openCreateModal" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap">
+          <PlusIcon class="w-4 h-4" />
+          New Category
+        </button>
+      </div>
     </div>
     
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -122,8 +135,8 @@
                 <td class="p-4"><div class="h-8 bg-slate-200 rounded w-16 float-right"></div></td>
               </tr>
             </template>
-            <template v-else-if="categories.length > 0">
-              <tr class="transition-colors border-b border-slate-50 last:border-0 hover:bg-slate-50/50" v-for="category in categories" :key="category._id">
+            <template v-else-if="filteredCategories.length > 0">
+              <tr class="transition-colors border-b border-slate-50 last:border-0 hover:bg-slate-50/50" v-for="category in filteredCategories" :key="category._id">
                 <td class="p-4 text-center font-medium text-slate-400">{{ category.sortOrder }}</td>
                 <td class="p-4">
                   <div class="flex items-center gap-3">
@@ -175,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { PlusIcon, EditIcon, TrashIcon, XIcon, FolderTreeIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
@@ -184,6 +197,23 @@ const { showToast } = useCustomToast();
 
 const loading = ref(true);
 const categories = ref<any[]>([]);
+
+const filterSearch = ref('');
+const filterStatus = ref('');
+
+const filteredCategories = computed(() => {
+  let result = categories.value;
+  if (filterSearch.value) {
+    const s = filterSearch.value.toLowerCase();
+    result = result.filter(c => c.name.toLowerCase().includes(s) || (c.description && c.description.toLowerCase().includes(s)));
+  }
+  if (filterStatus.value === 'active') {
+    result = result.filter(c => c.isActive);
+  } else if (filterStatus.value === 'inactive') {
+    result = result.filter(c => !c.isActive);
+  }
+  return result;
+});
 
 const showModal = ref(false);
 const editMode = ref(false);
@@ -242,6 +272,7 @@ const handleSubmit = async () => {
   try {
     const payload = { ...form.value };
     if (!payload.slug) delete payload.slug;
+    if (!editMode.value) delete payload._id;
     
     if (editMode.value) {
       await GATEWAY_ENDPOINT_WITH_AUTH.put(`/categories/${payload._id}`, payload);

@@ -171,8 +171,8 @@
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Products</h1>
-        <p class="text-sm text-slate-500 mt-1">Manage your store's inventory and product details.</p>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Subscription Products</h1>
+        <p class="text-sm text-slate-500 mt-1">Manage products available for subscription plans.</p>
       </div>
       <button @click="openCreateModal" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
         <PlusIcon class="w-4 h-4" />
@@ -373,7 +373,7 @@ const form = ref({
   images: [] as string[],
   ingredientsStr: '',
   allergensStr: '',
-  productType: 'regular',
+  productType: 'subscription',
   nutritionalInfo: {
     calories: 0,
     protein: 0,
@@ -435,7 +435,7 @@ const openCreateModal = () => {
     category: '', categoryId: '', icon: '', imageUrl: '', images: [],
     ingredientsStr: '',
     allergensStr: '',
-    productType: 'regular',
+    productType: 'subscription',
     nutritionalInfo: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, servingSize: '450ml' }
   };
   clearImages();
@@ -510,7 +510,7 @@ const handleSubmit = async () => {
       showToast({ title: 'Success', message: 'Product created successfully', type: 'success' });
     }
     closeModal();
-    await getProducts({ type: 'regular' });
+    await getProducts({ type: 'subscription' });
   } catch (e: any) {
     showToast({ title: 'Error', message: e.response?.data?.message || 'Failed to save product', type: 'error' });
   } finally {
@@ -536,8 +536,8 @@ const filteredProducts = computed(() => {
     result = result.filter((p: any) => (p.variants ? p.variants.reduce((a: number, b: any) => a + (b.stock || 0), 0) : p.stock) <= 0);
   }
   
-  // Strict separation: only show regular products
-  result = result.filter((p: any) => p.productType !== 'subscription');
+  // Strict separation: only show subscription products
+  result = result.filter((p: any) => p.productType === 'subscription');
   
   return result;
 });
@@ -545,7 +545,7 @@ const filteredProducts = computed(() => {
 onMounted(async () => {
   await Promise.all([
     fetchCategories(),
-    getProducts({ type: 'regular' }),
+    getProducts({ type: 'subscription' }),
     fetchAddonCategories(),
     getSettings()
   ]);
@@ -562,7 +562,7 @@ const confirmDelete = async () => {
     await deleteProduct(productToDelete.value);
     showConfirmModal.value = false;
     showToast({ title: 'Deleted', message: 'Product has been removed', type: 'success' });
-    await getProducts({ type: 'regular' });
+    await getProducts({ type: 'subscription' });
   } catch (e: any) {
     showToast({ title: 'Error', message: 'Failed to delete product', type: 'error' });
   } finally {

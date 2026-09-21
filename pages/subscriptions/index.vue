@@ -115,9 +115,8 @@
               <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Frequency</label>
                 <select v-model="form.frequency" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 bg-slate-50 transition-all">
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
+                  <option v-for="freq in settings?.subscriptionFrequencies" :key="freq" :value="freq">{{ freq }}</option>
+                  <option v-if="!settings?.subscriptionFrequencies?.length" value="" disabled>No frequencies configured</option>
                 </select>
               </div>
             </div>
@@ -331,8 +330,10 @@ import { ref, computed, onMounted } from 'vue';
 import { PlusIcon, EditIcon, TrashIcon, XIcon, SearchIcon, CheckIcon, PackageIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import { useSettings } from '~/composables/modules/settings/useSettings';
 
 const { showToast } = useCustomToast();
+const { settings, getSettings } = useSettings();
 
 const loading = ref(true);
 const saving = ref(false);
@@ -362,7 +363,7 @@ const executeConfirm = () => {
 const form = ref({
   name: '',
   price: 0,
-  frequency: 'weekly',
+  frequency: '',
   description: '',
   featuresStr: '',
   isPopular: false,
@@ -429,7 +430,7 @@ const removeSwappableProduct = (id: string) => {
 
 const fetchProducts = async () => {
   try {
-    const res = await GATEWAY_ENDPOINT_WITH_AUTH.get('/products');
+    const res = await GATEWAY_ENDPOINT_WITH_AUTH.get('/products?type=subscription');
     productsList.value = res.data;
   } catch (error) {
     console.error('Failed to fetch products', error);
@@ -451,13 +452,14 @@ const fetchPlans = async () => {
 onMounted(() => {
   fetchPlans();
   fetchProducts();
+  getSettings();
 });
 
 const openCreateModal = () => {
   isEditing.value = false;
   currentPlanId.value = '';
   productSearch.value = '';
-  form.value = { name: '', price: 0, frequency: 'weekly', description: '', featuresStr: '', isPopular: false, allowSwaps: true, productId: '', productIds: [], swappableProductIds: [] };
+  form.value = { name: '', price: 0, frequency: '', description: '', featuresStr: '', isPopular: false, allowSwaps: true, productId: '', productIds: [], swappableProductIds: [] };
   isModalOpen.value = true;
 };
 
