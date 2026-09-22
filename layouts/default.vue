@@ -1,7 +1,9 @@
 <template>
   <div class="h-screen bg-slate-50 flex overflow-hidden">
     <!-- Mobile Sidebar Overlay -->
+    <Teleport to="body">
     <div v-if="isMobileMenuOpen" class="fixed inset-0 bg-slate-900/50 z-20 md:hidden" @click="isMobileMenuOpen = false"></div>
+    </Teleport>
 
     <!-- Sidebar -->
     <aside 
@@ -115,6 +117,7 @@
     </main>
 
     <!-- Logout Modal -->
+    <Teleport to="body">
     <div v-if="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" @click.self="showLogoutModal = false">
       <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-100">
         <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
@@ -128,6 +131,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
     <!-- Toast Container -->
     <ToastContainer />

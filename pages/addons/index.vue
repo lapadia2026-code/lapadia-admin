@@ -76,14 +76,13 @@
             placeholder="Price (₦)" 
             class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
-          <select 
-            v-model="newAddon.categoryId" 
-            required
-            class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
-          >
-            <option value="" disabled>Select Category</option>
-            <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
-          </select>
+          <CustomSelect
+            v-model="newAddon.categoryId"
+            :options="categories"
+            labelKey="name"
+            valueKey="_id"
+            placeholder="Select Category"
+          />
           <button type="submit" :disabled="loading || !newAddon.categoryId" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
             Add Addon
           </button>
@@ -122,6 +121,7 @@
 import { ref, onMounted } from 'vue';
 import { useAddons } from '~/composables/modules/addons/useAddons';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 const activeTab = ref('categories');
 

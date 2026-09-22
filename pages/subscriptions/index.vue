@@ -92,6 +92,7 @@
     </div>
 
     <!-- Create/Edit Modal -->
+    <Teleport to="body">
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div class="p-6 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
@@ -314,6 +315,7 @@
         </form>
       </div>
     </div>
+    </Teleport>
     
     <CoreConfirmModal
       :isOpen="showConfirm"
@@ -431,7 +433,7 @@ const removeSwappableProduct = (id: string) => {
 const fetchProducts = async () => {
   try {
     const res = await GATEWAY_ENDPOINT_WITH_AUTH.get('/products?type=subscription');
-    productsList.value = res.data;
+    productsList.value = res.data.filter((item: any) => item.productType === 'subscription');
   } catch (error) {
     console.error('Failed to fetch products', error);
   }

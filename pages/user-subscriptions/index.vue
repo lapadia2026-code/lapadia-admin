@@ -6,12 +6,13 @@
         <p class="text-sm text-slate-500 mt-1">Manage user subscriptions, view their plans, and track billing dates.</p>
       </div>
       <div class="flex items-center gap-3">
-        <select v-model="statusFilter" class="px-3 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm">
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="expired">Expired</option>
-        </select>
+        <div class="w-40">
+          <CustomSelect
+            v-model="statusFilter"
+            :options="filterOptions"
+            placeholder="All Statuses"
+          />
+        </div>
         <button @click="downloadExcel" :disabled="downloading" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50">
           <span v-if="downloading" class="w-4 h-4 border-2 border-slate-400 border-t-slate-700 rounded-full animate-spin"></span>
           <DownloadIcon v-else class="w-4 h-4" />
@@ -128,6 +129,7 @@
   </div>
 
   <!-- Manage Status Modal -->
+  <Teleport to="body">
   <div v-if="isManageModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
       <div class="flex items-center justify-between p-6 border-b border-slate-100">
@@ -140,12 +142,11 @@
       <div class="p-6 space-y-6">
         <div>
           <label class="block text-sm font-semibold text-slate-700 mb-2">Subscription Status</label>
-          <select v-model="selectedStatus" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="expired">Expired</option>
-          </select>
+          <CustomSelect
+            v-model="selectedStatus"
+            :options="manageStatusOptions"
+            placeholder="Select Status"
+          />
           <p class="mt-2 text-xs text-slate-500">Updating the status to cancelled will prevent future billing for this subscription.</p>
         </div>
       </div>
@@ -158,8 +159,10 @@
       </div>
     </div>
   </div>
+  </Teleport>
 
   <!-- Track Delivery Logs Modal -->
+  <Teleport to="body">
   <div v-if="isDeliveryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
       <div class="flex items-center justify-between p-6 border-b border-slate-100">
@@ -190,12 +193,11 @@
       <div class="p-6 border-t border-slate-100 bg-white">
         <h4 class="text-sm font-bold text-slate-800 mb-3">Add New Log</h4>
         <div class="space-y-3">
-          <select v-model="newLogStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
-            <option value="preparing">Preparing</option>
-            <option value="dispatched">Dispatched</option>
-            <option value="delivered">Delivered</option>
-            <option value="failed">Failed / Attempted</option>
-          </select>
+          <CustomSelect
+            v-model="newLogStatus"
+            :options="deliveryStatusOptions"
+            placeholder="Select Status"
+          />
           <textarea v-model="newLogNotes" placeholder="Delivery notes..." rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm resize-none"></textarea>
           <button @click="addDeliveryLog" :disabled="savingLog || !newLogStatus || !newLogNotes" class="w-full px-4 py-2 text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
             {{ savingLog ? 'Adding...' : 'Add Log' }}
@@ -204,6 +206,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -211,6 +214,7 @@ import { ref, onMounted, computed } from 'vue';
 import { DownloadIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 const { showToast } = useCustomToast();
 const loading = ref(true);
@@ -227,6 +231,27 @@ const isDeliveryModalOpen = ref(false);
 const newLogStatus = ref('');
 const newLogNotes = ref('');
 const savingLog = ref(false);
+
+const filterOptions = [
+  { id: 'all', label: 'All Statuses' },
+  { id: 'active', label: 'Active' },
+  { id: 'cancelled', label: 'Cancelled' },
+  { id: 'expired', label: 'Expired' }
+];
+
+const manageStatusOptions = [
+  { id: 'active', label: 'Active' },
+  { id: 'paused', label: 'Paused' },
+  { id: 'cancelled', label: 'Cancelled' },
+  { id: 'expired', label: 'Expired' }
+];
+
+const deliveryStatusOptions = [
+  { id: 'preparing', label: 'Preparing' },
+  { id: 'dispatched', label: 'Dispatched' },
+  { id: 'delivered', label: 'Delivered' },
+  { id: 'failed', label: 'Failed / Attempted' }
+];
 
 const filteredSubscriptions = computed(() => {
   if (statusFilter.value === 'all') return subscriptions.value;

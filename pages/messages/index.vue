@@ -37,20 +37,13 @@
           <tbody class="divide-y divide-slate-200">
             <tr v-for="msg in messages" :key="msg._id" class="hover:bg-slate-50/50 transition-colors" :class="{ 'bg-blue-50/20': msg.status === 'unread' }">
               <td class="px-6 py-4 align-top">
-                <select 
-                  v-model="msg.status" 
-                  @change="updateStatus(msg._id, msg.status)"
-                  class="text-xs font-bold px-2 py-1 rounded-full outline-none cursor-pointer"
-                  :class="{
-                    'bg-blue-100 text-blue-700': msg.status === 'unread',
-                    'bg-slate-100 text-slate-700': msg.status === 'read',
-                    'bg-green-100 text-green-700': msg.status === 'replied'
-                  }"
-                >
-                  <option value="unread" class="text-slate-900 font-medium">Unread</option>
-                  <option value="read" class="text-slate-900 font-medium">Read</option>
-                  <option value="replied" class="text-slate-900 font-medium">Replied</option>
-                </select>
+                <div class="w-32">
+                  <CustomSelect
+                    v-model="msg.status"
+                    :options="statusOptions"
+                    @update:modelValue="updateStatus(msg._id, $event)"
+                  />
+                </div>
               </td>
               <td class="px-6 py-4 align-top">
                 <div class="font-bold text-slate-900 mb-1 whitespace-nowrap">{{ msg.fullName }}</div>
@@ -97,6 +90,7 @@
 import { ref, onMounted } from 'vue';
 import { GATEWAY_ENDPOINT } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 useHead({
   title: 'Support Messages - Lapadia Admin',
@@ -105,6 +99,12 @@ useHead({
 const { showToast } = useCustomToast();
 const loading = ref(true);
 const messages = ref<any[]>([]);
+
+const statusOptions = [
+  { id: 'unread', label: 'Unread' },
+  { id: 'read', label: 'Read' },
+  { id: 'replied', label: 'Replied' }
+];
 
 const fetchMessages = async () => {
   loading.value = true;

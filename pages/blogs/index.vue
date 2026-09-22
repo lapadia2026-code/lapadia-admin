@@ -77,6 +77,7 @@
     </div>
     
     <!-- Delete Modal -->
+    <Teleport to="body">
     <div v-if="blogToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-slate-100">
         <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
@@ -93,6 +94,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 

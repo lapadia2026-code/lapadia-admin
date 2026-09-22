@@ -25,34 +25,34 @@
               Filter
             </button>
             
+            <Teleport to="body">
             <div v-if="showFilterMenu" @click="showFilterMenu = false" class="fixed inset-0 z-40"></div>
+            </Teleport>
             <div v-if="showFilterMenu" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-50">
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Payment Status</label>
-                  <select v-model="statusFilter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                    <option value="">All Statuses</option>
-                    <option value="paid">Paid</option>
-                    <option value="pending">Pending</option>
-                  </select>
+                  <CustomSelect
+                    v-model="statusFilter"
+                    :options="paymentStatusOptions"
+                    placeholder="All Statuses"
+                  />
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Order Status</label>
-                  <select v-model="orderStatusFilter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                    <option value="">All Statuses</option>
-                    <option value="processing">Processing</option>
-                    <option value="dispatched">Dispatched</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                  <CustomSelect
+                    v-model="orderStatusFilter"
+                    :options="orderStatusOptions"
+                    placeholder="All Statuses"
+                  />
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Order Type</label>
-                  <select v-model="subscriptionFilter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                    <option value="">All Orders</option>
-                    <option value="subscription">Subscriptions Only</option>
-                    <option value="one-off">One-off Orders</option>
-                  </select>
+                  <CustomSelect
+                    v-model="subscriptionFilter"
+                    :options="orderTypeOptions"
+                    placeholder="All Orders"
+                  />
                 </div>
               </div>
             </div>
@@ -151,6 +151,7 @@
     </div>
 
     <!-- Order Details Modal -->
+    <Teleport to="body">
     <div v-if="showOrderModal && selectedOrder" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="closeModal"></div>
       <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -236,6 +237,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
     
     <CoreConfirmModal
       :isOpen="showConfirm"
@@ -253,6 +255,7 @@ import { DownloadIcon, SearchIcon, FilterIcon, EyeIcon, CheckCircleIcon, Shoppin
 import { useGetOrders } from '~/composables/modules/orders/useGetOrders';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 const { loading, orders, getOrders } = useGetOrders();
 const { showToast } = useCustomToast();
@@ -263,6 +266,26 @@ const orderStatusFilter = ref('');
 const subscriptionFilter = ref('');
 const showFilterMenu = ref(false);
 const downloading = ref(false);
+
+const paymentStatusOptions = [
+  { id: '', label: 'All Statuses' },
+  { id: 'paid', label: 'Paid' },
+  { id: 'pending', label: 'Pending' }
+];
+
+const orderStatusOptions = [
+  { id: '', label: 'All Statuses' },
+  { id: 'processing', label: 'Processing' },
+  { id: 'dispatched', label: 'Dispatched' },
+  { id: 'delivered', label: 'Delivered' },
+  { id: 'cancelled', label: 'Cancelled' }
+];
+
+const orderTypeOptions = [
+  { id: '', label: 'All Orders' },
+  { id: 'subscription', label: 'Subscriptions Only' },
+  { id: 'one-off', label: 'One-off Orders' }
+];
 
 const showConfirm = ref(false);
 const confirmTitle = ref('');

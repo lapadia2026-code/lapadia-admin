@@ -60,11 +60,11 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Status</label>
-              <select v-model="form.status" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-sm capitalize">
-                <option value="upcoming">Upcoming</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="past">Past</option>
-              </select>
+              <CustomSelect
+                v-model="form.status"
+                :options="statusOptions"
+                placeholder="Select Status"
+              />
             </div>
 
             <div class="pt-2">
@@ -98,6 +98,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '~/composables/useApi';
 import { useUploadImage } from '~/composables/modules/upload/useUploadImage';
 import { ArrowLeftIcon, ImageIcon, TrashIcon } from 'lucide-vue-next';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 const { uploadImage, isUploading, uploadError } = useUploadImage();
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -108,6 +109,12 @@ const { api } = useApi();
 
 const loading = ref(true);
 const isSaving = ref(false);
+
+const statusOptions = [
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'ongoing', label: 'Ongoing' },
+  { id: 'past', label: 'Past' }
+];
 
 const handleImageUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;

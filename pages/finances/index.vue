@@ -105,6 +105,7 @@
     </div>
 
     <!-- Payout Modal -->
+    <Teleport to="body">
     <div v-if="showPayoutModal" class="fixed inset-0 z-[100] flex items-center justify-center">
       <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showPayoutModal = false"></div>
       <div class="relative bg-white rounded-2xl w-full max-w-sm mx-4 p-6 shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
@@ -141,6 +142,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 

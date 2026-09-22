@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6 relative">
     <!-- Overlay & Modal for Product -->
+    <Teleport to="body">
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center">
       <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
       <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -149,8 +150,10 @@
         </form>
       </div>
     </div>
+    </Teleport>
 
     <!-- Confirmation Modal -->
+    <Teleport to="body">
     <div v-if="showConfirmModal" class="fixed inset-0 z-[110] flex items-center justify-center">
       <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
       <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center">
@@ -168,6 +171,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
@@ -192,7 +196,9 @@
             Filter
           </button>
           
+          <Teleport to="body">
           <div v-if="showFilterMenu" @click="showFilterMenu = false" class="fixed inset-0 z-40"></div>
+          </Teleport>
           <div v-if="showFilterMenu" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-50">
             <div class="space-y-4">
               <div>

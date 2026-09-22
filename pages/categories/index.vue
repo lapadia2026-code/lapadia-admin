@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6 relative">
     <!-- Overlay & Modal for Category -->
+    <Teleport to="body">
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center">
       <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
       <div class="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -64,8 +65,10 @@
         </form>
       </div>
     </div>
+    </Teleport>
 
     <!-- Confirmation Modal -->
+    <Teleport to="body">
     <div v-if="showConfirmModal" class="fixed inset-0 z-[110] flex items-center justify-center">
       <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
       <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center">
@@ -83,6 +86,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
@@ -96,11 +100,13 @@
           placeholder="Search categories..." 
           class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-w-[200px]"
         />
-        <select v-model="filterStatus" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <div class="min-w-[150px]">
+          <CustomSelect
+            v-model="filterStatus"
+            :options="statusOptions"
+            placeholder="All Status"
+          />
+        </div>
         <button @click="openCreateModal" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap">
           <PlusIcon class="w-4 h-4" />
           New Category
@@ -192,6 +198,7 @@ import { ref, onMounted, computed } from 'vue';
 import { PlusIcon, EditIcon, TrashIcon, XIcon, FolderTreeIcon } from 'lucide-vue-next';
 import { GATEWAY_ENDPOINT_WITH_AUTH } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
+import CustomSelect from '~/components/core/CustomSelect.vue';
 
 const { showToast } = useCustomToast();
 
@@ -200,6 +207,12 @@ const categories = ref<any[]>([]);
 
 const filterSearch = ref('');
 const filterStatus = ref('');
+
+const statusOptions = [
+  { id: '', label: 'All Status' },
+  { id: 'active', label: 'Active' },
+  { id: 'inactive', label: 'Inactive' }
+];
 
 const filteredCategories = computed(() => {
   let result = categories.value;
