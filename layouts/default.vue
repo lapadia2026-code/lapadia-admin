@@ -36,8 +36,12 @@
           <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Subscription Plans</span>
         </NuxtLink>
         <NuxtLink to="/user-subscriptions" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'User Subscriptions' : ''">
-          <UsersIcon class="w-5 h-5 shrink-0" />
+          <RepeatIcon class="w-5 h-5 shrink-0" />
           <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">User Subscriptions</span>
+        </NuxtLink>
+        <NuxtLink to="/users" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Users' : ''">
+          <UsersIcon class="w-5 h-5 shrink-0" />
+          <span v-if="!isSidebarCollapsed" class="whitespace-nowrap">Users</span>
         </NuxtLink>
         <NuxtLink to="/products" @click="isMobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors" :title="isSidebarCollapsed ? 'Products' : ''">
           <PackageIcon class="w-5 h-5 shrink-0" />

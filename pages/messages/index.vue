@@ -38,11 +38,20 @@
             <tr v-for="msg in messages" :key="msg._id" class="hover:bg-slate-50/50 transition-colors" :class="{ 'bg-blue-50/20': msg.status === 'unread' }">
               <td class="px-6 py-4 align-top">
                 <div class="w-32">
-                  <CustomSelect
+                  <select
                     v-model="msg.status"
-                    :options="statusOptions"
-                    @update:modelValue="updateStatus(msg._id, $event)"
-                  />
+                    @change="updateStatus(msg._id, msg.status)"
+                    class="block w-full text-sm font-medium border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors py-2 px-3 bg-white"
+                    :class="{
+                      'text-blue-600': msg.status === 'unread',
+                      'text-slate-600': msg.status === 'read',
+                      'text-green-600': msg.status === 'replied'
+                    }"
+                  >
+                    <option v-for="option in statusOptions" :key="option.id" :value="option.id">
+                      {{ option.label }}
+                    </option>
+                  </select>
                 </div>
               </td>
               <td class="px-6 py-4 align-top">
@@ -90,7 +99,6 @@
 import { ref, onMounted } from 'vue';
 import { GATEWAY_ENDPOINT } from '~/api_factory/axios.config';
 import { useCustomToast } from '~/composables/core/useCustomToast';
-import CustomSelect from '~/components/core/CustomSelect.vue';
 
 useHead({
   title: 'Support Messages - Lapadia Admin',
